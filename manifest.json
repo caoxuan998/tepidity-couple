@@ -1,0 +1,16 @@
+{
+  "name": "异地恋 · 情侣默契测试",
+  "short_name": "默契测试",
+  "description": "异地恋专属情侣默契测试，40 道趣味题测你们有多合拍",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF6F0",
+  "theme_color": "#B89260",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

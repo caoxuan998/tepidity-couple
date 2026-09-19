@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#B89260">
+  <title>异地恋 · 情侣默契测试</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="默契测试">
+  <style>
+    :root{
+      --gold:#B89260; --gold-d:#9C7A4F; --pink:#C98A91; --pink-l:#E8B4B8;
+      --cream:#FBF6F0; --ink:#3A2E2A; --ink-soft:#7A6E68; --white:#fff;
+      --maxw:480px;
+      --serif:"Noto Serif SC","Source Han Serif SC","Songti SC",serif;
+      --sans:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    html,body{margin:0;padding:0;}
+    body{
+      font-family:var(--sans); color:var(--ink); background:var(--cream);
+      background-image:radial-gradient(circle at 50% -10%, #FCEFE6 0%, var(--cream) 55%);
+      min-height:100vh;
+    }
+    .app{max-width:var(--maxw);margin:0 auto;padding:0 18px 110px;position:relative;}
+    .view{display:none;}
+    .view.active{display:block;animation:fade .35s ease;}
+    @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+    .topbar{text-align:center;padding:26px 0 6px;}
+    .tag{font-family:var(--sans);letter-spacing:3px;font-size:12px;color:var(--gold);text-transform:uppercase;}
+    h1{font-family:var(--serif);font-weight:700;font-size:30px;margin:6px 0 2px;color:var(--ink);}
+    .sub{color:var(--pink);font-size:14px;margin:0;}
+
+    .card{background:var(--white);border-radius:22px;padding:22px;margin:16px 0;
+      box-shadow:0 6px 24px rgba(156,122,79,.10);}
+
+    .hero{text-align:center;}
+    .hearts{font-size:46px;margin:8px 0 4px;
+      background:linear-gradient(135deg,var(--gold),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;}
+    .hero p{color:var(--ink-soft);font-size:14px;line-height:1.7;margin:10px 4px 0;}
+
+    .btn{display:block;width:100%;border:none;cursor:pointer;font-family:var(--sans);
+      font-size:16px;font-weight:600;color:var(--white);padding:15px;border-radius:999px;
+      background:linear-gradient(135deg,var(--gold),var(--pink));
+      box-shadow:0 6px 18px rgba(184,146,96,.35);transition:transform .15s;}
+    .btn:active{transform:scale(.97);}
+    .btn.ghost{background:transparent;color:var(--gold-d);border:1.5px solid var(--gold);
+      box-shadow:none;}
+    .btn-row{display:flex;gap:12px;margin-top:14px;}
+
+    .q-count{display:flex;justify-content:space-between;align-items:center;margin:4px 2px 10px;
+      font-size:13px;color:var(--ink-soft);}
+    .progress{height:6px;background:#F0E6DA;border-radius:99px;overflow:hidden;margin:0 2px 14px;}
+    .progress > i{display:block;height:100%;width:0;border-radius:99px;
+      background:linear-gradient(90deg,var(--gold),var(--pink));transition:width .3s;}
+
+    .q-item{margin:14px 0;}
+    .q-t{font-size:15px;font-weight:600;margin-bottom:10px;line-height:1.5;}
+    .q-t b{color:var(--gold-d);font-weight:700;margin-right:6px;}
+    .opts{display:flex;flex-direction:column;gap:10px;}
+    .opt{border:1.5px solid #EBDDcc;border-radius:14px;padding:14px 16px;font-size:15px;
+      background:#fff;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px;}
+    .opt .dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--gold);flex:0 0 auto;}
+    .opt.sel{border-color:var(--gold);background:linear-gradient(135deg,#FCF4EA,#FBEFE9);}
+    .opt.sel .dot{background:var(--gold);box-shadow:0 0 0 3px rgba(184,146,96,.18);}
+
+    /* 结果 */
+    .result{text-align:center;}
+    .ring-wrap{position:relative;width:200px;height:200px;margin:6px auto 4px;}
+    .ring-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+    .ring-num .p{font-family:var(--serif);font-size:52px;font-weight:700;color:var(--ink);line-height:1;}
+    .ring-num .t{font-size:13px;color:var(--ink-soft);margin-top:4px;letter-spacing:2px;}
+    .verdict{font-family:var(--serif);font-size:22px;font-weight:700;margin:4px 0 2px;}
+    .verdict-sub{color:var(--ink-soft);font-size:14px;line-height:1.7;margin:0 6px 6px;}
+    .diff-list{text-align:left;margin:14px 0 4px;}
+    .diff-list .dl-t{font-size:13px;color:var(--gold-d);font-weight:600;margin-bottom:8px;}
+    .diff-item{font-size:13px;color:var(--ink-soft);padding:8px 0;border-top:1px solid #F2E9DE;line-height:1.5;}
+    .diff-item b{color:var(--pink);}
+
+    /* 分享卡预览 */
+    .modal-mask{position:fixed;inset:0;background:rgba(58,46,42,.55);display:none;
+      align-items:center;justify-content:center;z-index:200;padding:20px;}
+    .modal-mask.show{display:flex;}
+    .share-card{width:88%;max-width:340px;}
+    .share-card img{width:100%;border-radius:18px;display:block;box-shadow:0 10px 30px rgba(0,0,0,.25);}
+    .share-tip{color:#fff;font-size:13px;text-align:center;margin-top:14px;opacity:.92;}
+    .share-bar{display:flex;gap:10px;margin-top:14px;}
+    .share-bar .btn{padding:12px;font-size:14px;}
+
+    /* 链接弹窗 */
+    .link-box{background:#FBF4EC;border:1px dashed var(--gold);border-radius:12px;
+      padding:12px;font-size:12px;color:var(--ink-soft);word-break:break-all;line-height:1.6;
+      max-height:120px;overflow:auto;margin:12px 0;}
+    .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);
+      background:var(--ink);color:#fff;font-size:14px;padding:11px 20px;border-radius:99px;
+      opacity:0;pointer-events:none;transition:.3s;z-index:300;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    .foot{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:18px;line-height:1.6;}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- 首页 -->
+    <section class="view active" id="view-home">
+      <div class="topbar">
+        <div class="tag">Long-Distance Love</div>
+        <h1>情侣默契测试</h1>
+        <p class="sub">异地恋专属 · 测测你有多懂 TA</p>
+      </div>
+      <div class="card hero">
+        <div class="hearts">&#10084;&#10084;</div>
+        <p>40 道二选一趣味题，你和 TA 各答一遍，<br>看你们的答案有多「不谋而合」。</p>
+        <p style="margin-top:12px;color:var(--gold-d);font-weight:600;">玩法</p>
+        <p style="font-size:13px;">① 你先答 → 生成挑战链接<br>② 发给 TA，TA 答完 → 出默契度<br>③ 截图分享，秀一下你们的合拍度</p>
+      </div>
+      <button class="btn" id="startBtn">开始答题</button>
+      <p class="foot">数据仅保存在本机，换设备需重新测试</p>
+    </section>
+
+    <!-- 答题 -->
+    <section class="view" id="view-quiz">
+      <div class="topbar">
+        <div class="tag" id="quizTag">Quiz</div>
+        <h1 id="quizTitle">默契选择题</h1>
+      </div>
+      <div class="q-count"><span id="qProgress">第 1 / 40 题</span><span id="qAnswered">已选 0</span></div>
+      <div class="progress"><i id="progBar"></i></div>
+      <div id="quizList"></div>
+      <button class="btn" id="submitBtn">生成挑战链接</button>
+      <button class="btn ghost" id="backHome" style="margin-top:12px;">返回首页</button>
+    </section>
+
+    <!-- 结果 -->
+    <section class="view" id="view-result">
+      <div class="topbar">
+        <div class="tag">Result</div>
+        <h1>默契结果</h1>
+      </div>
+      <div class="card result">
+        <div class="ring-wrap">
+          <canvas id="ringCanvas" width="200" height="200"></canvas>
+          <div class="ring-num"><div class="p" id="pctNum">0%</div><div class="t">默契度</div></div>
+        </div>
+        <div class="verdict" id="verdict">—</div>
+        <p class="verdict-sub" id="verdictSub"></p>
+        <div class="diff-list" id="diffList"></div>
+        <button class="btn" id="shareBtn">生成分享卡片</button>
+        <button class="btn ghost" id="againBtn" style="margin-top:12px;">再测一次</button>
+      </div>
+      <p class="foot">本测试为趣味互动，结果不代表真实感情状况</p>
+    </section>
+  </div>
+
+  <!-- 挑战链接弹窗 -->
+  <div class="modal-mask" id="linkModal">
+    <div class="card" style="width:88%;max-width:360px;">
+      <h1 style="font-size:20px;text-align:center;margin:0 0 6px;">挑战链接已生成</h1>
+      <p class="sub" style="text-align:center;margin-bottom:4px;">复制发给 TA，TA 答完就能看到默契度</p>
+      <div class="link-box" id="linkText"></div>
+      <button class="btn" id="copyLink">复制链接</button>
+      <button class="btn ghost" id="closeLink" style="margin-top:12px;">我知道了</button>
+    </div>
+  </div>
+
+  <!-- 分享卡弹窗 -->
+  <div class="modal-mask" id="shareModal">
+    <div>
+      <div class="share-card"><img id="shareImg" alt="分享卡片"></div>
+      <div class="share-tip">长按图片即可保存到相册，发小红书 / 朋友圈</div>
+      <div class="share-bar">
+        <button class="btn" id="saveShare">下载图片</button>
+        <button class="btn ghost" id="closeShare" style="box-shadow:none;background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.5);">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  (function(){
+    'use strict';
+    var QUESTIONS = [
+      {q:'更想怎么度过一个悠闲的周末？', a:'一起打游戏 / 连麦看剧', b:'各自休息、充充电'},
+      {q:'平时吵架后，通常是谁先开口说话？', a:'我', b:'TA'},
+      {q:'收到下面哪种更让你开心？', a:'TA 突然出现在面前', b:'收到 TA 寄的礼物'},
+      {q:'视频通话时你更享受？', a:'开着各忙各的也安心', b:'专心聊天不干别的'},
+      {q:'决定去哪家吃饭，一般听谁的？', a:'我', b:'TA'},
+      {q:'你更喜欢的称呼方式是？', a:'宝贝 / 专属昵称', b:'直接叫名字'},
+      {q:'异地时，谁更想快点见到对方？', a:'我（想得不行）', b:'TA（嘴上不说）'},
+      {q:'纪念日你更看重？', a:'有仪式感的礼物', b:'一句走心的真心话'},
+      {q:'睡前的最后一件事通常是？', a:'互道晚安再睡', b:'各刷各的手机'},
+      {q:'一起旅行你更倾向？', a:'提前做好详细攻略', b:'走到哪玩到哪'},
+      {q:'你生气的时候，希望 TA？', a:'立刻来哄我', b:'先给点空间冷静'},
+      {q:'下面哪种情话更戳你？', a:'土味直白的「想你了」', b:'走心文艺的长句子'},
+      {q:'你们里谁更爱拍照记录？', a:'我', b:'TA'},
+      {q:'周末视频你更想一起？', a:'云同步做饭', b:'云同步看电影'},
+      {q:'在这段关系里，你更像？', a:'黏人的那一个', b:'独立的那一个'},
+      {q:'异地时你更常因为什么偷偷开心？', a:'收到 TA 的突发消息', b:'看到 TA 发的动态'},
+      {q:'你们约定过「每天必说的一句话」吗？', a:'早安 / 晚安', b:'没有固定，随性就好'},
+      {q:'如果只能选一样，你更想要 TA 的？', a:'亲手写的信', b:'精心挑的礼物'},
+      {q:'视频时你更受不了？', a:'TA 一直低头看手机', b:'突然被打断要挂断'},
+      {q:'你们谁更会制造小惊喜？', a:'我', b:'TA'},
+      {q:'长假见面，你更想先？', a:'窝在家里腻着', b:'出去吃遍好吃的'},
+      {q:'你更常因为什么吃醋？', a:'TA 和异性朋友太近', b:'TA 陪别人多过陪我'},
+      {q:'纪念日你更在意？', a:'TA 记得这个日子', b:'TA 当天陪我久一点'},
+      {q:'你们之间谁更容易把话说重？', a:'我', b:'TA'},
+      {q:'异地时你更依赖？', a:'固定时间的通话', b:'随时随地的碎碎念'},
+      {q:'如果吵架冷战，你更希望？', a:'早点被哄好', b:'自己先想通再聊'},
+      {q:'你更想收到的早安方式是？', a:'语音叫醒', b:'一句文字就够'},
+      {q:'未来城市你更倾向？', a:'去 TA 所在的城市', b:'一起选个新城市'},
+      {q:'你更吃哪一种想念？', a:'TA 说「好想抱你」', b:'TA 默默买了你来玩的车票'},
+      {q:'追剧看电影你更爱？', a:'同步看实时吐槽', b:'各自看完再讨论'},
+      {q:'你更常怎么表达爱意？', a:'直接说出来', b:'用行动证明'},
+      {q:'见面时你更想多拍？', a:'合照留念', b:'TA 的生活碎片'},
+      {q:'你更受不了对方？', a:'回消息慢', b:'说话敷衍'},
+      {q:'长途见面只带一样东西，你选？', a:'TA 送的玩偶', b:'两人的聊天记录本'},
+      {q:'你们谁更念旧？', a:'我', b:'TA'},
+      {q:'纪念日夜晚你更想？', a:'连麦看同一部电影', b:'打电话聊到睡着'},
+      {q:'送礼物你更看重？', a:'用心程度', b:'价格贵不贵'},
+      {q:'你更常因为什么对 TA 生气？', a:'答应的事没做到', b:'忽略我的情绪'},
+      {q:'异地结束你最期待？', a:'终于能天天见面', b:'再也不用算时差'},
+      {q:'你更想被 TA 怎样记住？', a:'记得我的小喜好', b:'记得我们的重要日子'}
+    ];
+
+    var STORE_KEY = 'match:result:v1';
+    var answers = new Array(QUESTIONS.length).fill(null);
+    var mode = 'host';          // host=发起者A, join=受邀者B
+    var hostAnswers = null;     // B 模式下 TA 的答案
+
+    var $ = function(id){ return document.getElementById(id); };
+
+    function showView(id){
+      ['view-home','view-quiz','view-result'].forEach(function(v){
+        $(v).classList.toggle('active', v === id);
+      });
+    }
+    function toast(msg){
+      var t = $('toast'); t.textContent = msg; t.classList.add('show');
+      setTimeout(function(){ t.classList.remove('show'); }, 1800);
+    }
+
+    // 读取 URL 中的挑战参数
+    function getParam(name){
+      try{
+        return new URLSearchParams(location.search).get(name);
+      }catch(e){ return null; }
+    }
+
+    // ---------- 首页 ----------
+    $('startBtn').addEventListener('click', function(){
+      var q = getParam('q');
+      if(q && q.length === QUESTIONS.length && /^[AB]+$/.test(q)){
+        mode = 'join';
+        hostAnswers = q.split('');
+        $('quizTag').textContent = 'Challenge';
+        $('quizTitle').textContent = 'TA 向你发起挑战';
+        $('submitBtn').textContent = '看我们的默契度';
+      } else {
+        mode = 'host';
+        $('quizTag').textContent = 'Quiz';
+        $('quizTitle').textContent = '默契选择题';
+        $('submitBtn').textContent = '生成挑战链接';
+      }
+      answers = new Array(QUESTIONS.length).fill(null);
+      renderQuiz();
+      showView('view-quiz');
+    });
+
+    $('backHome').addEventListener('click', function(){ showView('view-home'); });
+
+    // ---------- 答题 ----------
+    function renderQuiz(){
+      var list = $('quizList'); list.innerHTML = '';
+      QUESTIONS.forEach(function(item, i){
+        var wrap = document.createElement('div'); wrap.className = 'q-item';
+        var t = document.createElement('div'); t.className = 'q-t';
+        t.innerHTML = '<b>' + (i+1) + '</b>' + escapeHTML(item.q);
+        var opts = document.createElement('div'); opts.className = 'opts';
+        [['A', item.a], ['B', item.b]].forEach(function(pair){
+          var o = document.createElement('div'); o.className = 'opt';
+          if(answers[i] === pair[0]) o.classList.add('sel');
+          o.innerHTML = '<span class="dot"></span>' + escapeHTML(pair[1]);
+          o.addEventListener('click', function(){
+            answers[i] = pair[0];
+            renderQuiz();
+          });
+          opts.appendChild(o);
+        });
+        wrap.appendChild(t); wrap.appendChild(opts);
+        list.appendChild(wrap);
+      });
+      var done = answers.filter(function(x){ return x !== null; }).length;
+      $('qProgress').textContent = '第 1 / ' + QUESTIONS.length + ' 题';
+      $('qAnswered').textContent = '已选 ' + done + ' / ' + QUESTIONS.length;
+      $('progBar').style.width = (done / QUESTIONS.length * 100) + '%';
+      $('submitBtn').textContent = (mode === 'join') ? '看我们的默契度' : '生成挑战链接';
+    }
+
+    $('submitBtn').addEventListener('click', function(){
+      var done = answers.filter(function(x){ return x !== null; }).length;
+      if(done < QUESTIONS.length){ toast('还有 ' + (QUESTIONS.length - done) + ' 题没选哦'); return; }
+      if(mode === 'host'){
+        var q = answers.join('');
+        var url;
+        try{ url = location.origin + location.pathname + '?q=' + q; }
+        catch(e){ url = '?q=' + q; }
+        // file:// 下 origin/pathname 可能为空，退回相对地址
+        if(!url || url.indexOf('q=') < 0 || /^(\?q=)/.test(url)){
+          url = (location.href.split('?')[0]) + '?q=' + q;
+        }
+        $('linkText').textContent = url;
+        $('linkModal').classList.add('show');
+      } else {
+        computeResult();
+      }
+    });
+
+    $('copyLink').addEventListener('click', function(){
+      var txt = $('linkText').textContent;
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(function(){ toast('已复制，去发给 TA 吧'); },
+          function(){ toast('请手动长按复制'); });
+      } else { toast('请手动长按复制'); }
+    });
+    $('closeLink').addEventListener('click', function(){ $('linkModal').classList.remove('show'); });
+
+    // ---------- 结果 ----------
+    function computeResult(){
+      var same = 0, diffs = [];
+      for(var i=0;i<QUESTIONS.length;i++){
+        if(answers[i] === hostAnswers[i]) same++;
+        else diffs.push(i);
+      }
+      var pct = Math.round(same / QUESTIONS.length * 100);
+      var data = { pct:pct, same:same, total:QUESTIONS.length, diffs:diffs };
+      try{ localStorage.setItem(STORE_KEY, JSON.stringify(data)); }catch(e){}
+      renderResult(data);
+      showView('view-result');
+    }
+
+    function renderResult(data){
+      $('pctNum').textContent = data.pct + '%';
+      // 环形进度
+      var cv = $('ringCanvas'), ctx = cv.getContext('2d');
+      var cx = 100, cy = 100, R = 84;
+      ctx.clearRect(0,0,200,200);
+      ctx.lineWidth = 16; ctx.lineCap = 'round';
+      ctx.strokeStyle = '#EBDDCC';
+      ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.stroke();
+      var grad = ctx.createLinearGradient(0,0,200,200);
+      grad.addColorStop(0,'#B89260'); grad.addColorStop(1,'#C98A91');
+      ctx.strokeStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx,cy,R,-Math.PI/2, -Math.PI/2 + data.pct/100*Math.PI*2);
+      ctx.stroke();
+
+      var v, sub;
+      if(data.pct >= 90){ v='天生一对'; sub='你们简直一个模子刻出来的，异地也挡不住合拍。'; }
+      else if(data.pct >= 70){ v='心有灵犀'; sub='大部分时候你们想一块儿去，小分歧反而可爱。'; }
+      else if(data.pct >= 50){ v='渐入佳境'; sub='一半以上不谋而合，剩下的正好多聊聊天。'; }
+      else { v='互补型选手'; sub='想法常常不一样，但异地恋不就是互相了解的过程嘛。'; }
+      $('verdict').textContent = v;
+      $('verdictSub').textContent = '你们作答的 ' + data.total + ' 道题里，有 ' + data.same + ' 道不谋而合' +
+        (data.diffs.length ? '，' + data.diffs.length + ' 道有点小分歧。' : '，默契满分！');
+
+      var dl = $('diffList'); dl.innerHTML = '';
+      if(data.diffs.length){
+        var h = document.createElement('div'); h.className = 'dl-t';
+        h.textContent = '有点分歧的地方（仅供你们私下了解）';
+        dl.appendChild(h);
+        data.diffs.forEach(function(i){
+          var d = document.createElement('div'); d.className = 'diff-item';
+          d.innerHTML = escapeHTML(QUESTIONS[i].q) +
+            '<br>你选了 <b>' + escapeHTML(QUESTIONS[i][answers[i]==='A'?'a':'b']) + '</b>';
+          dl.appendChild(d);
+        });
+      }
+    }
+
+    $('againBtn').addEventListener('click', function(){ showView('view-home'); });
+
+    // ---------- 分享卡片 ----------
+    $('shareBtn').addEventListener('click', function(){
+      var raw; try{ raw = localStorage.getItem(STORE_KEY); }catch(e){ raw = null; }
+      if(!raw){ toast('先完成一次测试再生成卡片'); return; }
+      var data = JSON.parse(raw);
+      var url = buildShareCard(data);
+      $('shareImg').src = url;
+      $('shareModal').classList.add('show');
+    });
+    $('closeShare').addEventListener('click', function(){ $('shareModal').classList.remove('show'); });
+    $('saveShare').addEventListener('click', function(){
+      var a = document.createElement('a');
+      a.href = $('shareImg').src; a.download = '默契度.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      toast('已开始下载');
+    });
+
+    function buildShareCard(data){
+      var W = 1080, H = 1350;
+      var c = document.createElement('canvas'); c.width = W; c.height = H;
+      var x = c.getContext('2d');
+      // 背景
+      var g = x.createLinearGradient(0,0,0,H);
+      g.addColorStop(0,'#FBF6F0'); g.addColorStop(1,'#F4EBE1');
+      x.fillStyle = g; x.fillRect(0,0,W,H);
+      // 顶部标签
+      x.fillStyle = '#B89260'; x.font = '600 30px "PingFang SC","Microsoft YaHei",sans-serif';
+      x.textAlign = 'center'; x.fillText('LONG-DISTANCE LOVE · MATCH TEST', W/2, 90);
+      // 标题
+      x.fillStyle = '#3A2E2A'; x.font = '700 64px "Songti SC","SimSun",serif';
+      x.fillText('我们默契度', W/2, 180);
+      // 双心
+      drawHeart(x, W/2-60, 280, 56, '#C98A91');
+      drawHeart(x, W/2+60, 280, 56, '#B89260');
+      // 大数字环
+      var cx = W/2, cy = 560, R = 180;
+      x.lineWidth = 30; x.lineCap = 'round';
+      x.strokeStyle = '#EBDDCC';
+      x.beginPath(); x.arc(cx,cy,R,0,Math.PI*2); x.stroke();
+      var grad = x.createLinearGradient(cx-R,cy-R,cx+R,cy+R);
+      grad.addColorStop(0,'#B89260'); grad.addColorStop(1,'#C98A91');
+      x.strokeStyle = grad;
+      x.beginPath(); x.arc(cx,cy,R,-Math.PI/2, -Math.PI/2 + data.pct/100*Math.PI*2); x.stroke();
+      x.fillStyle = '#3A2E2A'; x.font = '700 150px "Songti SC","SimSun",serif';
+      x.fillText(data.pct + '%', cx, cy+50);
+      // 文案
+      x.fillStyle = '#7A6E68'; x.font = '400 34px "PingFang SC","Microsoft YaHei",sans-serif';
+      x.fillText('你们作答的 ' + data.total + ' 道题里，有 ' + data.same + ' 道不谋而合', W/2, 840);
+      // 评价
+      var v;
+      if(data.pct>=90) v='天生一对'; else if(data.pct>=70) v='心有灵犀';
+      else if(data.pct>=50) v='渐入佳境'; else v='互补型选手';
+      x.fillStyle = '#9C7A4F'; x.font = '700 44px "Songti SC","SimSun",serif';
+      x.fillText('「' + v + '」', W/2, 930);
+      // 底部
+      x.fillStyle = '#B89260'; x.font = '400 28px "PingFang SC",sans-serif';
+      x.fillText('异地恋 · 情侣默契测试', W/2, 1240);
+      x.fillStyle = '#9C7A4F'; x.font = '400 24px "PingFang SC",sans-serif';
+      x.fillText('手机浏览器打开即用 · 数据仅存本机', W/2, 1290);
+      return c.toDataURL('image/png');
+    }
+
+    function drawHeart(ctx, cx, cy, s, color){
+      var r = s*0.30;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(cx - s*0.48, cy - s*0.38 + r, r, 0, Math.PI*2);
+      ctx.arc(cx + s*0.48, cy - s*0.38 + r, r, 0, Math.PI*2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(cx - s*0.78, cy - s*0.06);
+      ctx.lineTo(cx + s*0.78, cy - s*0.06);
+      ctx.lineTo(cx, cy + s*0.66);
+      ctx.closePath(); ctx.fill();
+    }
+
+    function escapeHTML(s){
+      return String(s).replace(/[&<>"]/g, function(c){
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+      });
+    }
+
+    // 调试 / 自动化测试钩子（不影响正常功能）
+    if (typeof window !== 'undefined') {
+      window.__match = {
+        QUESTIONS: QUESTIONS,
+        setMode: function (m) { mode = m; },
+        setHostAnswers: function (a) { hostAnswers = a; },
+        setAnswers: function (a) { answers = a.slice(); },
+        computeResult: computeResult,
+        buildShareCard: buildShareCard,
+        getParam: getParam
+      };
+    }
+
+    // PWA
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('sw.js?v=2').catch(function(){});
+    }
+  })();
+  </script>
+</body>
+</html>
